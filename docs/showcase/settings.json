@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "renderer": "bounded-inverse-depth-warp-v1",
+  "sourceHash": "201c0a12ae23b23ec878e52e079bf18f49f337fba3e4371237157b103a29699a",
+  "originalSize": [
+    4624,
+    3468
+  ],
+  "workingSize": [
+    1600,
+    1200
+  ],
+  "model": "onnx-community/depth-anything-v2-small",
+  "runtime": "@huggingface/transformers@4.3.2",
+  "inference": {
+    "model": "onnx-community/depth-anything-v2-small",
+    "backend": "webgpu",
+    "dtype": "fp32",
+    "inferenceMs": 2104
+  },
+  "depthType": "relative-inverse-depth",
+  "normalization": "2nd–98th percentile; larger = nearer",
+  "settings": {
+    "source": 24,
+    "target": 50,
+    "panX": 0.5,
+    "panY": 0.5,
+    "anchorX": 0.5,
+    "anchorY": 0.5,
+    "strength": 0.22
+  },
+  "preference": "",
+  "sourceFile": "samples/IMG20240105123302.jpg",
+  "note": "Generated from actual app output with unchanged import defaults, including automatic GPU-first/CPU-fallback selection.",
+  "depthDimensions": [
+    1600,
+    1200
+  ]
+}
