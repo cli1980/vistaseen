@@ -1,5 +1,6 @@
 import { chromium } from '@playwright/test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 const browser = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true, args: process.env.FORCE_CPU ? ['--disable-gpu'] : [] });
 const page = await browser.newPage({viewport:{width:1440,height:1100}});
 const errors=[]; page.on('pageerror', e=>errors.push(e.message));
@@ -16,6 +17,8 @@ try {
   });
   await page.getByLabel('Choose a photograph').setInputFiles({name:'synthetic-landscape.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
   await page.getByRole('status').filter({hasText:'Photo ready'}).waitFor();
+  await page.getByRole('checkbox', { name: 'Camera rotation', exact: true }).uncheck();
+  await page.getByRole('checkbox', { name: 'Depth enhancement', exact: true }).check();
   const modelPicker=page.getByRole('combobox',{name:'Depth model',exact:true});
   assert.equal(await modelPicker.locator('option').count(),3);
   assert.equal(await page.getByLabel('Horizontal framing',{exact:true}).count(),0);
@@ -53,6 +56,45 @@ try {
   const recipeEvent=page.waitForEvent('download');await page.getByRole('button',{name:'↓ Edit recipe'}).click();const recipeDownload=await recipeEvent;await recipeDownload.saveAs('.tmp/recipe.json');
   const downloadEvent=page.waitForEvent('download');await page.getByRole('button',{name:'↓ Enhanced PNG'}).click();const download=await downloadEvent;await download.saveAs('.tmp/export.png');
   await page.screenshot({path:'.tmp/comparison.png',fullPage:true});
+  // Reuse the already inferred depth while changing camera direction.
+  await page.getByRole('checkbox',{name:'Camera rotation',exact:true}).check();
+  await preview.click({position:{x:bounds.width*.9,y:bounds.height*.2}});
+  await page.waitForTimeout(250);
+  assert.equal(await page.getByLabel('Comparison baseline').count(),0);
+  let combined=await canvases.evaluateAll(cs=>cs.map(c=>c.toDataURL()));
+  assert.notEqual(combined[0],combined[1]);
+  await page.getByLabel('Background emphasis').fill('0');await page.waitForTimeout(250);
+  combined=await canvases.evaluateAll(cs=>cs.map(c=>c.toDataURL()));assert.equal(combined[0],combined[1]);
+  await page.getByLabel('Background emphasis').fill('0.3');await page.waitForTimeout(250);
+  const rotatedPair=await canvases.evaluateAll(cs=>cs.map(c=>c.toDataURL()));
+  await page.getByLabel('Depth map',{exact:true}).check();await page.waitForTimeout(250);
+  const mapped=await canvases.evaluateAll(cs=>cs.map(c=>c.toDataURL()));
+  assert.equal(mapped[0],rotatedPair[0]);assert.notEqual(mapped[1],rotatedPair[1]);
+  await page.getByLabel('Depth map',{exact:true}).uncheck();
+  const combinedRecipeEvent=page.waitForEvent('download');
+  await page.getByRole('button',{name:'↓ Edit recipe'}).click();
+  await (await combinedRecipeEvent).saveAs('.tmp/combined-recipe.json');
+  const combinedRecipe=JSON.parse(await readFile('.tmp/combined-recipe.json','utf8'));
+  assert.equal(combinedRecipe.renderer,'rotation-then-depth-warp-v1');
+  assert.equal(combinedRecipe.baseline,'rotation');assert.equal(combinedRecipe.anchorSpace,'rotated-target-frame');
+  assert.ok(combinedRecipe.depth.data.length>0);assert.ok(Math.abs(combinedRecipe.camera.yawDegrees)>1);
+  const combinedDownload=page.waitForEvent('download');
+  await page.getByRole('button',{name:'↓ Rotation + depth PNG'}).click();
+  await (await combinedDownload).saveAs('.tmp/combined-export.png');
+  await page.locator('.pair').screenshot({path:'.tmp/combined-comparison.png'});
+  await page.getByRole('button',{name:'Compare without labels'}).click();
+  await page.getByRole('button',{name:'Prefer A',exact:true}).click();
+  await page.getByRole('button',{name:'Reveal labels'}).click();
+  await page.getByText('Preference recorded in recipe.').waitFor();
+  await page.getByRole('checkbox',{name:'Depth enhancement',exact:true}).uncheck();await page.waitForTimeout(250);
+  const rotationOnly=await canvases.evaluateAll(cs=>cs.map(c=>c.toDataURL()));
+  assert.equal(rotationOnly[1],rotatedPair[0]);
+  await page.getByRole('checkbox',{name:'Depth enhancement',exact:true}).check();await page.waitForTimeout(250);
+  assert.equal(await page.getByRole('button',{name:'✓ Depth estimated'}).isDisabled(),true);
+  await page.setViewportSize({width:390,height:844});
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+  await page.screenshot({path:'.tmp/combined-mobile.png',fullPage:true});
+  await page.getByRole('checkbox',{name:'Camera rotation',exact:true}).uncheck();
   for (const size of ['base','large']) {
     await modelPicker.selectOption(`onnx-community/depth-anything-v2-${size}`);
     await page.getByRole('status').filter({hasText:'selected'}).waitFor();
@@ -63,5 +105,5 @@ try {
   }
   await page.setViewportSize({width:390,height:844});await page.screenshot({path:'.tmp/mobile.png',fullPage:true});
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
-  assert.deepEqual(errors,[]);console.log('PASS: real browser depth inference, crop identity, enhancement, blind vote, PNG export, responsive layout.');
+  assert.deepEqual(errors,[]);console.log('PASS: real browser depth inference, crop/depth and rotation/depth comparisons, zero-strength identity, cached depth, automatic baseline, blind vote, PNG/recipe exports, responsive layout.');
 } catch(e) {console.error(await page.getByRole('status').innerText().catch(()=>''));console.error(await page.locator('.error').allTextContents());throw e;} finally {await browser.close();}

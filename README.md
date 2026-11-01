@@ -1,6 +1,6 @@
 # Vistas As Seen
 
-Help artists turn landscape photos into painting references that better express the scale they experienced on location. Compare **crop only** with **depth-aware enhancement**, keeping the original in view.
+Help artists turn landscape photos into painting references that better express the scale they experienced on location. Try **fixed-position camera rotation** and **depth-aware enhancement**, separately or together, keeping the original in view.
 
 ## Sponsorship
 
@@ -20,7 +20,7 @@ Photographers and painters have long discussed distant scenery losing prominence
 
 ![Original landscape with crop overlay](docs/showcase/original-overlay-defaults-50mm.png)
 
-App defaults: 50 mm target, 22% emphasis, centered crop and anchor, Small model. This capture used GPU inference and an assumed 24 mm source focal length. [Full settings](docs/showcase/settings.json).
+Depth comparison settings: 50 mm target, 22% emphasis, centered crop and anchor, Small model. This capture used GPU inference and an assumed 24 mm source focal length. The app now opens with camera rotation and depth enhancement enabled. [Full settings](docs/showcase/settings.json).
 
 ## Run
 
@@ -36,19 +36,21 @@ Open [localhost:5173](http://127.0.0.1:5173).
 ## Try it
 
 1. Import a JPEG, PNG, or WebP (HEIC where supported). Check the source focal length; missing EXIF defaults to 24 mm.
-2. Choose the target focal length and drag the crop on the original preview. Click outside the box to recenter; arrow keys fine-tune.
-3. Choose **Small**, **Base**, or **Large**, then **Estimate depth on this device**. GPU is preferred, with automatic CPU fallback. First use downloads model weights; photos stay local.
-4. Adjust background emphasis and the anchor. Inspect the depth map, compare without labels, and record your preference.
-5. Export the crop, enhanced PNG, or edit recipe. Save your outputs before closing or refreshing; sessions are not persisted.
+2. Choose the target focal length and drag the target on the original preview. **Camera rotation** and **Depth enhancement** are enabled by default. The outline shows the baseline frame without depth. Movement stops at the image boundary, preserving the selected focal length. Arrow keys fine-tune.
+3. The left result always shows the same framing without depth: rotation-only when camera rotation is enabled, otherwise crop-only.
+4. Choose **Small**, **Base**, or **Large**, and estimate depth. Leave **Camera rotation** enabled to combine them, or turn it off for crop + depth. GPU is preferred, with automatic CPU fallback; photos stay local. The baseline updates automatically with the camera-rotation setting. Adjust emphasis and place the anchor within the rotated result. Moving the frame reuses the existing depth estimate.
+5. Compare without labels, record your preference, and export either PNG or an edit recipe. Save outputs before refreshing; sessions are not persisted.
 
 ## POC limits
 
 - Working images and exports are capped at **1600 px** on the long edge; uploads at 40 MB.
+- Camera rotation assumes a rectilinear image, a centered principal point, and diagonal 35mm-equivalent focal lengths. It uses no depth, translation, or generated fill; it does not correct residual lens distortion.
+- Combined mode aligns depth with the rotated view, applies the artistic warp there, and samples the original photo once. Sampling stays inside the rotated footprint; zero emphasis matches rotation-only. The outline shows the view before depth enhancement.
 - Enhancement is an artistic warp. It can bend straight structures or stretch depth boundaries; it is not physical camera reconstruction.
 - Depth Anything V2 Small uses Apache-2.0 weights. **Base and Large use noncommercial CC-BY-NC-4.0 weights** and require more memory and download time. Full inference for these larger models still needs validation on target hardware.
 - Exported PNGs omit source metadata. Recipes are export-only, not reloadable projects.
 
-See the [design document](perceptual_perspective_design.md) for geometry, architecture, evaluation, risks, and planned capabilities. It describes the broader direction; this browser-only POC implements crop and perceptual enhancement.
+See the [design document](perceptual_perspective_design.md) for the broader geometry, architecture, and evaluation plan. This browser-only POC implements crop, fixed-position rotation, and perceptual enhancement.
 
 ## Development
 
@@ -60,4 +62,5 @@ npm test
 With the app running and Windows Chrome installed:
 
 - `node tests/browser.mjs` — browser checks with real inference; set `FORCE_CPU=1` to check CPU fallback.
-- `node scripts/create-showcase.mjs` — regenerate the README images using app defaults.
+- `node tests/rotation-browser.mjs` — camera rotation, frame bounds, PNG/recipe exports, and responsive layout; no model download.
+- `node scripts/create-showcase.mjs` — regenerate the README images using depth-comparison defaults.

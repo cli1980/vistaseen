@@ -2,7 +2,7 @@ import { chromium } from '@playwright/test';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 
 // Capture actual app output, with no retouching or synthetic depth.
-// Leave model, crop, enhancement, and GPU-first/CPU-fallback selection at app defaults.
+// Select the depth comparison; leave its model, crop, and enhancement at defaults.
 await mkdir('docs/showcase', { recursive: true });
 await mkdir('.tmp', { recursive: true });
 const browser = await chromium.launch({ executablePath: 'C:/Program Files/Google/Chrome/Application/chrome.exe', headless: true });
@@ -11,6 +11,8 @@ try {
   await page.goto('http://127.0.0.1:5173');
   await page.getByLabel('Choose a photograph').setInputFiles('samples/IMG20240105123302.jpg');
   await page.getByRole('status').filter({ hasText: 'Photo ready' }).waitFor();
+  await page.getByRole('checkbox', { name: 'Camera rotation', exact: true }).uncheck();
+  await page.getByRole('checkbox', { name: 'Depth enhancement', exact: true }).check();
   await page.getByRole('button', { name: 'Estimate depth on this device' }).click();
   const timer = setInterval(async () => console.log(await page.getByRole('status').innerText().catch(() => '')), 15000);
   try { await page.getByRole('status').filter({ hasText: 'Depth ready' }).waitFor({ timeout: 900000 }); } finally { clearInterval(timer); }
@@ -21,7 +23,7 @@ try {
   await (await recipeEvent).saveAs('.tmp/showcase-recipe.json');
   const recipe = JSON.parse(await readFile('.tmp/showcase-recipe.json', 'utf8'));
   const { depth, ...metadata } = recipe;
-  await writeFile('docs/showcase/settings.json', JSON.stringify({ ...metadata, sourceFile: 'samples/IMG20240105123302.jpg', note: 'Generated from actual app output with unchanged import defaults, including automatic GPU-first/CPU-fallback selection.', depthDimensions: [depth.width, depth.height] }, null, 2) + '\n');
+  await writeFile('docs/showcase/settings.json', JSON.stringify({ ...metadata, sourceFile: 'samples/IMG20240105123302.jpg', note: 'Depth comparison selected; other settings remain at import defaults, including automatic GPU-first/CPU-fallback selection.', depthDimensions: [depth.width, depth.height] }, null, 2) + '\n');
   // Presentation-only styling for README captures. Photo pixels, crop, and warp
   // remain the canvases rendered by the app.
   await page.addStyleTag({ content: `
