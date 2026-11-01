@@ -7,3 +7,5 @@
 .original-frame{touch-action:none;cursor:grab;user-select:none}.original-frame:active{cursor:grabbing}.original-frame:focus-visible{outline:2px solid #d1e6a6;outline-offset:4px}
 
 .model-picker{display:block;font-size:12px;color:#c0c8bc}.model-picker select{width:100%;min-width:0;margin-top:9px;padding:10px 6px;background:#131813;border:1px solid #46503e;border-radius:5px;color:#ebf0df;font:inherit}.model-note{margin:10px 0 16px}.model-note a{display:inline-block;margin-top:7px;color:#c9df98}
+
+.sponsorship{margin-top:24px;color:#b5c0ad;font-size:12px;line-height:1.7;text-align:center}.sponsorship strong{font-weight:600;color:#d4dec9}.sponsorship a{display:inline-block;margin-left:12px;color:#c9df98}

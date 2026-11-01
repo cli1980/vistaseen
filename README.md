@@ -2,6 +2,12 @@
 
 Help artists turn landscape photos into painting references that better express the scale they experienced on location. Compare **crop only** with **depth-aware enhancement**, keeping the original in view.
 
+## Sponsorship
+
+**This project is sponsored by Crossborder Art & Media LLC.**
+
+Licensed under [Apache-2.0](LICENSE), with sponsorship attribution in [NOTICE](NOTICE). Redistributed derivative works must preserve applicable notices as specified in Section 4(d); a visible app credit is welcome but not required. Third-party dependencies and model weights retain their own licenses.
+
 Photographers and painters have long discussed distant scenery losing prominence in photos and the limits of photographic references. See [Michael Frye](https://www.michaelfrye.com/2015/03/29/lenses-perspective/), [Aaron Hertzmann](https://pmc.ncbi.nlm.nih.gov/articles/PMC11055503/), and [Koo Schadler](https://kooschadler.com/techniques/photo-references.pdf). This POC explores whether controlled depth-based adjustment makes those references more useful.
 
 ## See the difference
