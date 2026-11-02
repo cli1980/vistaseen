@@ -9,6 +9,7 @@
 .rotation-outline{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 .rotation-outline polygon,.rotation-outline .aim-cross{fill:none;stroke:#d1e6a6;stroke-width:2}
 .rotation-outline .rotation-shade{fill:#0006}
+.rotation-frame-label{position:absolute;z-index:3;padding:5px 9px;background:#d1e6a6;color:#1c2816;font-size:11px;white-space:nowrap;pointer-events:none}
 .comparison-picker{margin-top:18px}.rotation-note{padding:12px;border:1px solid #46503e;border-radius:5px}
 .effect-toggles{display:flex;flex-direction:column;gap:12px;margin:20px 0;font-size:13px}.effect-toggles input{accent-color:#c9df98;margin-right:7px}
 

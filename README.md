@@ -2,12 +2,6 @@
 
 Help artists turn landscape photos into painting references that better express the scale they experienced on location. Try **fixed-position camera rotation** and **depth-aware enhancement**, separately or together, keeping the original in view.
 
-## Sponsorship
-
-**This project is sponsored by Crossborder Art & Media LLC.**
-
-Licensed under [Apache-2.0](LICENSE), with sponsorship attribution in [NOTICE](NOTICE). Redistributed derivative works must preserve applicable notices as specified in Section 4(d); a visible app credit is welcome but not required. Third-party dependencies and model weights retain their own licenses.
-
 Photographers and painters have long discussed distant scenery losing prominence in photos and the limits of photographic references. See [Michael Frye](https://www.michaelfrye.com/2015/03/29/lenses-perspective/), [Aaron Hertzmann](https://pmc.ncbi.nlm.nih.gov/articles/PMC11055503/), and [Koo Schadler](https://kooschadler.com/techniques/photo-references.pdf). This POC explores whether controlled depth-based adjustment makes those references more useful.
 
 ## See the difference
@@ -20,7 +14,7 @@ Photographers and painters have long discussed distant scenery losing prominence
 
 ![Original landscape with crop overlay](docs/showcase/original-overlay-defaults-50mm.png)
 
-Depth comparison settings: 50 mm target, 22% emphasis, centered crop and anchor, Small model. This capture used GPU inference and an assumed 24 mm source focal length. The app now opens with camera rotation and depth enhancement enabled. [Full settings](docs/showcase/settings.json).
+Earlier depth-only showcase (camera rotation off): 50 mm target, 22% emphasis, centered crop and anchor, Small model. This capture used GPU inference and an assumed 24 mm source focal length. The app now opens with camera rotation and depth enhancement enabled. [Full settings](docs/showcase/settings.json).
 
 ## Run
 
@@ -33,12 +27,16 @@ npm run dev
 
 Open [localhost:5173](http://127.0.0.1:5173).
 
+## Deploy to your website
+
+Run `npm.cmd run build` on Windows (or `npm run build` elsewhere). Upload everything **inside** `dist/` into your website's app folder, including `assets/`, `LICENSE.txt`, and `NOTICE.txt`. The build uses relative paths, so no folder-specific build flag is needed. Open the folder URL with a trailing slash over HTTPS, for example `https://chunlin.li/vistas-as-seen/`.
+
 ## Try it
 
 1. Import a JPEG, PNG, or WebP (HEIC where supported). Check the source focal length; missing EXIF defaults to 24 mm.
-2. Choose the target focal length and drag the target on the original preview. **Camera rotation** and **Depth enhancement** are enabled by default. The outline shows the baseline frame without depth. Movement stops at the image boundary, preserving the selected focal length. Arrow keys fine-tune.
-3. The left result always shows the same framing without depth: rotation-only when camera rotation is enabled, otherwise crop-only.
-4. Choose **Small**, **Base**, or **Large**, and estimate depth. Leave **Camera rotation** enabled to combine them, or turn it off for crop + depth. GPU is preferred, with automatic CPU fallback; photos stay local. The baseline updates automatically with the camera-rotation setting. Adjust emphasis and place the anchor within the rotated result. Moving the frame reuses the existing depth estimate.
+2. Choose the target focal length and drag the target on the original preview. **Camera rotation** and **Depth enhancement** are enabled by default. The outline and focal-length label show the baseline frame without depth. With rotation enabled, movement stops at the image boundary, preserving the selected focal length. Arrow keys fine-tune.
+3. In the labeled comparison, the left result uses the same framing without depth: rotation-only when camera rotation is enabled, otherwise crop-only. Blind comparison randomizes the sides.
+4. Choose **Small**, **Base**, or **Large**, then click **Estimate depth on this device**; enabling depth does not start a download automatically. Leave **Camera rotation** enabled to combine them, or turn it off for crop + depth. GPU is preferred, with automatic CPU fallback; photos stay local. Adjust emphasis and place the anchor within the rotated result, or in the original photo when rotation is off. Moving the frame reuses the existing depth estimate.
 5. Compare without labels, record your preference, and export either PNG or an edit recipe. Save outputs before refreshing; sessions are not persisted.
 
 ## POC limits
@@ -50,7 +48,7 @@ Open [localhost:5173](http://127.0.0.1:5173).
 - Depth Anything V2 Small uses Apache-2.0 weights. **Base and Large use noncommercial CC-BY-NC-4.0 weights** and require more memory and download time. Full inference for these larger models still needs validation on target hardware.
 - Exported PNGs omit source metadata. Recipes are export-only, not reloadable projects.
 
-See the [design document](perceptual_perspective_design.md) for the broader geometry, architecture, and evaluation plan. This browser-only POC implements crop, fixed-position rotation, and perceptual enhancement.
+See the [design document](perceptual_perspective_design.md) for current geometry and architecture, known limitations, and proposed evaluation and improvements. This browser-only POC implements crop, fixed-position rotation, and perceptual enhancement.
 
 ## Development
 
@@ -64,3 +62,9 @@ With the app running and Windows Chrome installed:
 - `node tests/browser.mjs` — browser checks with real inference; set `FORCE_CPU=1` to check CPU fallback.
 - `node tests/rotation-browser.mjs` — camera rotation, frame bounds, PNG/recipe exports, and responsive layout; no model download.
 - `node scripts/create-showcase.mjs` — regenerate the README images using depth-comparison defaults.
+
+## Sponsorship
+
+**This project is sponsored by Crossborder Art & Media LLC.**
+
+Licensed under [Apache-2.0](LICENSE), with sponsorship attribution in [NOTICE](NOTICE). Redistributed derivative works must preserve applicable notices as specified in Section 4(d); a visible app credit is welcome but not required. Third-party dependencies and model weights retain their own licenses.

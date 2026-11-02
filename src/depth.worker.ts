@@ -1,6 +1,6 @@
 import { pipeline, env, RawImage } from '@huggingface/transformers';
 import { normalizeDepth } from './geometry';
-import { gpuWithCpuFallback } from './inference';
+import { formatModelProgress, gpuWithCpuFallback } from './inference';
 import { getDepthModel } from './models';
 env.allowLocalModels = false;
 env.backends.onnx.wasm!.numThreads = 1;
@@ -17,7 +17,15 @@ async function dispose() {
 }
 self.onmessage = async (event: MessageEvent) => {
   const { id, pixels, width, height, modelId } = event.data;
-  const progress = (message: string) => self.postMessage({ id, type: 'progress', message });
+  let lastMessage = 'Preparing depth estimation…', lastUpdate = Date.now();
+  const progress = (message: string) => {
+    lastMessage = message; lastUpdate = Date.now();
+    self.postMessage({ id, type: 'progress', message });
+  };
+  const waiting = setInterval(() => {
+    const seconds = Math.floor((Date.now() - lastUpdate) / 1000);
+    if (seconds >= 30) self.postMessage({ id, type: 'progress', message: `${lastMessage} · No progress update for ${seconds}s. You can cancel and retry; if downloading, check access to Hugging Face on your network.` });
+  }, 5000);
   try {
     const model = getDepthModel(modelId).id;
     if (loadedModel !== model) { await dispose(); fallbackReason = undefined; }
@@ -28,7 +36,10 @@ self.onmessage = async (event: MessageEvent) => {
         progress(`Preparing ${label} depth model…`);
         estimator = await pipeline('depth-estimation', model, {
           device, dtype: device === 'webgpu' ? 'fp32' : 'q8',
-          progress_callback: (p: any) => progress(p.status === 'progress' ? `${label} · downloading model · ${Math.round(p.progress ?? 0)}%` : `Preparing ${label} depth model…`),
+          progress_callback: (p: any) => {
+            const message = formatModelProgress(p, label);
+            if (message) progress(message);
+          },
         });
         backend = device;
         loadedModel = model;
@@ -56,5 +67,7 @@ self.onmessage = async (event: MessageEvent) => {
   } catch (error) {
     await dispose();
     self.postMessage({ id, type: 'error', message: messageOf(error) });
+  } finally {
+    clearInterval(waiting);
   }
 };

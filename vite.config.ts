@@ -6,6 +6,8 @@ let licensePath: string;
 let noticePath: string;
 
 export default defineConfig({
+  // Keep static builds portable between the site root and any app subfolder.
+  base: './',
   plugins: [{
     name: 'deployment-legal-notices',
     configResolved(config) {
